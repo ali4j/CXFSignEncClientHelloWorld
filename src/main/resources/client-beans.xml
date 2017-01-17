@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+          http://www.springframework.org/schema/beans 
+          http://www.springframework.org/schema/beans/spring-beans.xsd
+          http://cxf.apache.org/jaxws 
+          http://cxf.apache.org/schemas/jaxws.xsd">
+ 
+    <jaxws:client id="helloClient"
+    			  serviceClass="net.ali4j.service.server.HelloService"
+    			  address="http://localhost:8080/CXFSignEncServerHelloWorld/services/helloService">
+		<jaxws:inInterceptors>
+			<ref bean="inbound-security" />
+		</jaxws:inInterceptors>
+		<jaxws:outInterceptors>
+			<ref bean="outbound-security" />
+		</jaxws:outInterceptors>
+        <jaxws:features>
+            <bean class="org.apache.cxf.feature.LoggingFeature" />
+        </jaxws:features>
+	</jaxws:client>
+	
+	
+	<bean class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor" id="inbound-security">
+		<constructor-arg>
+			<map>
+				<entry key="action" value="Timestamp Signature Encrypt"/>
+				<entry key="signaturePropFile" value="client.properties"/>
+				<entry key="decryptionPropFile" value="client.properties"/>
+				<entry key="passwordCallbackClass"  value="net.ali4j.service.util.ClientPasswordCallback" />
+			</map>
+		</constructor-arg>
+	</bean>	
+	
+	<bean class="org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor" id="outbound-security">
+		<constructor-arg>
+			<map>
+				<entry key="action" value="Timestamp Signature Encrypt"/>
+				  
+				<entry key="user" value="client"/>
+				<entry key="signaturePropFile" value="client.properties"/>
+				<entry key="encryptionPropFile" value="client.properties"/>
+				<entry key="encryptionUser" value="server"/>
+				<entry key="signatureKeyIdentifier" value="DirectReference"/>
+
+				
+				<entry key="passwordCallbackClass" value="net.ali4j.service.util.ClientPasswordCallback"/>
+				<entry key="signatureParts" value="{Element}{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd}Timestamp;{Element}{http://schemas.xmlsoap.org/soap/envelope/}Body"/>
+				<entry key="encryptionParts" value="{Element}{http://www.w3.org/2000/09/xmldsig#}Signature;{Content}{http://schemas.xmlsoap.org/soap/envelope/}Body"/>
+				<entry key="encryptionSymAlgorithm" value="http://www.w3.org/2001/04/xmlenc#tripledes-cbc"/>
+			</map>
+		</constructor-arg>
+	</bean>
+</beans>
